@@ -15,16 +15,24 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/WebSubKit/SubscriberVapor.git", revision: "1405912"),
+        .package(url: "https://github.com/WebSubKit/SubscriberVapor.git", from: "1.1.0"),
         .package(url: "https://github.com/vapor/vapor.git", from: "4.92.0"),
         .package(url: "https://github.com/vapor/fluent.git", from: "4.9.0"),
-        .package(url: "https://github.com/vapor/fluent-sqlite-driver.git", from: "4.6.0")
+        .package(url: "https://github.com/vapor/queues-redis-driver.git", from: "1.1.1"),
+        .package(url: "https://github.com/naufalfachrian/FeedKit", from: "9.1.3"),
+        .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.4.0"),
+        .package(url: "https://github.com/vapor/fluent-sqlite-driver", from: "4.6.0"),
+        .package(url: "https://github.com/dishub-moe/discord-webhook-executor.git", from: "2.0.0")
     ],
     targets: [
         .executableTarget(
             name: "Parfait",
             dependencies: [
-                .product(name: "SubscriberVapor", package: "SubscriberVapor")
+                .product(name: "SubscriberVapor", package: "SubscriberVapor"),
+                .product(name: "QueuesRedisDriver", package: "queues-redis-driver"),
+                .product(name: "FeedKit", package: "FeedKit"),
+                .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
+                .product(name: "DiscordWebhookExecutor", package: "discord-webhook-executor")
             ]
         ),
         .testTarget(

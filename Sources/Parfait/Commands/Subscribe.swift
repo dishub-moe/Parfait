@@ -3,51 +3,124 @@ import SubscriberVapor
 import Vapor
 
 
-struct Subscribe: SubscribeCommand {
+struct Subscribe: AsyncCommand {
     
     struct Signature: CommandSignature {
         
-        @Option(name: "topic")
-        var topic: String?
-
-        @Option(name: "lease-seconds")
-        var leaseSeconds: Int?
-
-        @Option(name: "preferred-hub")
-        var preferredHub: String?
+        @Argument(
+            name: "youtube-channel-id",
+            help: "YouTube Channel ID to subscribe"
+        )
+        var youTubeChannelID: String
+        
+        @Argument(
+            name: "discord-webhook-url",
+            help: "Discord Webhook URL to connect"
+        )
+        var discordWebhook: String
+        
+        @Option(
+            name: "mentioning-discord-roles",
+            help: "Discord server roles to mention, separated with comma (,)"
+        )
+        var mentioningDiscordRoles: String?
+        
+        @Option(
+            name: "label",
+            help: "Label the subscription"
+        )
+        var label: String?
         
     }
     
-    var callbackURLGenerator: CallbackURLGenerator { storedCallbackURLGenerator }
+    let help: String = "Subscribe to YouTube channel push notification and deliver it's to a Discord Webhook"
     
-    var delegate: SubscriberDelegate { storedDelegate }
-
-    let help = "Subscribe to a topic"
-
-    private let storedCallbackURLGenerator: CallbackURLGenerator & Sendable
-
-    private let storedDelegate: SubscriberDelegate & Sendable
-
-    init(
-        callbackURLGenerator: CallbackURLGenerator & Sendable,
-        delegate: SubscriberDelegate & Sendable
-    ) {
-        self.storedCallbackURLGenerator = callbackURLGenerator
-        self.storedDelegate = delegate
+    func run(using context: CommandContext, signature: Signature) async throws {
+        let youTubeChannelID = signature.youTubeChannelID
+        let discordWebhook = signature.discordWebhook
+        try await activateYouTubeChannelSubscription(
+            youTubeChannelID,
+            using: context
+        )
+        let subscription = try await context.application
+            .createOrUpdateDiscordWebhookSubscription(
+                youTubeChannelID: youTubeChannelID,
+                discordWebhookURL: discordWebhook.convertToURL(),
+                label: signature.label
+            )
+        context.application.logger.trace("Subscription updated")
+        context.application.logger.debug("Subscription updated", metadata: [
+            "YouTube Channel ID":
+                "\(subscription.youTubeChannelID)",
+            "Discord Webhook URL":
+                "\(subscription.discordWebhookURL)",
+            "Label":
+                "\(String(describing: subscription.label))",
+            "Discord Webhook Subscription ID":
+                "\(String(describing: subscription.id))"
+        ])
+        if let mentioningDiscordRoles = signature.mentioningDiscordRoles?
+            .split(separator: ",")
+            .map({ String($0) }) {
+            try await connect(mentioningDiscordRoles, to: subscription, using: context)
+        }
     }
+    
+}
 
-    func input(
-        using context: CommandContext,
-        signature: Signature
-    ) async throws -> (
-        topic: String,
-        leaseSeconds: Int?,
-        preferredHub: String?
-    ) {
-        let topic = signature.topic ?? context.console.ask("Please type topic URL to subscribe")
-        let leaseSeconds = signature.leaseSeconds ?? Int(context.console.ask("Please type lease seconds"))
-        let preferredHub = signature.preferredHub ?? context.console.ask("Please type preferred hub URL")
-        return (topic, leaseSeconds, preferredHub)
+
+extension Subscribe {
+    
+    fileprivate func activateYouTubeChannelSubscription(
+        _ youTubeChannelID: String,
+        using context: CommandContext
+    ) async throws {
+        let topic = try "https://www.youtube.com/xml/feeds/videos.xml?channel_id=\(youTubeChannelID)"
+            .convertToURL()
+        let subscription = try await context.application.subscriptions(for: topic).first
+        if let subscription {
+            // Resubscribe existing subscription
+            try await context.application.resubscribe(
+                callback: subscription.callback,
+                leaseSeconds: nil,
+                on: context.application,
+                delegate: context.application
+            )
+        } else {
+            // Subscribe a new subscription
+            try await context.application.subscribe(
+                topic: topic,
+                to: context.application.generateNewCallbackURL(),
+                leaseSeconds: nil,
+                preferredHub: "https://pubsubhubbub.appspot.com".convertToURL(),
+                on: context.application,
+                delegate: context.application
+            )
+        }
+    }
+    
+    fileprivate func connect(
+        _ mentioningDiscordRoles: [String],
+        to subscription: DiscordWebhookSubscription,
+        using context: CommandContext
+    ) async throws {
+        let stored = try await context.application.storeMentioningDiscordRoles(
+            mentioningDiscordRoles.map({ ($0, nil as String?) }),
+            on: subscription
+        )
+        context.application.logger.trace("\(stored.count) Discord role mentions stored")
+        context.application.logger.debug("\(stored.count) Discord role mentions stored", metadata: [
+            "Discord Roles to Mention":
+                "\(stored.map({ $0.roleSnowflake }).joined(separator: ","))",
+            "YouTube Channel ID":
+                "\(subscription.youTubeChannelID)",
+            "Discord Webhook URL":
+                "\(subscription.discordWebhookURL)",
+            "Label":
+                "\(String(describing: subscription.label))",
+            "Discord Webhook Subscription ID":
+                "\(String(describing: subscription.id))"
+        ])
     }
     
 }

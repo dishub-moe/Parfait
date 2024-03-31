@@ -13,6 +13,7 @@ enum Entrypoint {
         }
         
         do {
+            app.databases.use(databaseConfig(), as: databaseID())
             try configure(app)
         } catch {
             app.logger.report(error: error)
