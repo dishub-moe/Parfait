@@ -4,14 +4,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "SubscriberVaporStarter",
+    name: "Parfait",
     platforms: [
         .macOS(.v12)
     ],
     products: [
         .executable(
-            name: "SubscriberVaporStarter",
-            targets: ["SubscriberVaporStarter"]
+            name: "Parfait",
+            targets: ["Parfait"]
         )
     ],
     dependencies: [
@@ -22,15 +22,15 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "SubscriberVaporStarter",
+            name: "Parfait",
             dependencies: [
                 .product(name: "SubscriberVapor", package: "SubscriberVapor")
             ]
         ),
         .testTarget(
-            name: "SubscriberVaporStarterTests",
+            name: "ParfaitTests",
             dependencies: [
-                .target(name: "SubscriberVaporStarter"),
+                .target(name: "Parfait"),
                 .product(name: "XCTVapor", package: "vapor"),
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentSQLiteDriver", package: "fluent-sqlite-driver")

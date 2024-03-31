@@ -1,9 +1,9 @@
 import XCTVapor
 import FluentSQLiteDriver
-@testable import SubscriberVaporStarter
+@testable import Parfait
 
 
-final class SubscriberVaporStarterTests: XCTestCase {
+final class ParfaitTests: XCTestCase {
     
     func test100() async throws {
         let app = Application(.testing)
