@@ -1,6 +1,7 @@
 import FluentKit
 import Foundation
 import Queues
+import Vapor
 
 
 struct ExtractReceivedContentJob: AsyncJob, YouTubeFeedParser {
@@ -143,20 +144,35 @@ struct ExtractReceivedContentJob: AsyncJob, YouTubeFeedParser {
             }
             try await youTubeChannel.save(on: context.application.db)
             for youTubeVideo in youTubeVideos {
-                try await youTubeVideo.save(on: context.application.db)
-                // Execute Discord Webhook via Job
-                try await context.queue.dispatch(
-                    ExecuteDiscordWebhookJob.self,
-                    .init(
-                        youTubeChannel: youTubeChannel,
-                        youTubeVideo: youTubeVideo,
-                        discordWebhookURL: subscription.discordWebhookURL,
-                        mentioningDiscordRoles: subscription.mentioningDiscordRoles
-                            .map { $0.roleSnowflake }
-                    )
+                let shouldExecuteDiscordWebhookJob = try await shouldExecuteDiscordWebhookJob(
+                    video: youTubeVideo,
+                    on: context
                 )
+                try await youTubeVideo.save(on: context.application.db)
+                if shouldExecuteDiscordWebhookJob {
+                    // Execute Discord Webhook via Job
+                    try await context.queue.dispatch(
+                        ExecuteDiscordWebhookJob.self,
+                        .init(
+                            youTubeChannel: youTubeChannel,
+                            youTubeVideo: youTubeVideo,
+                            discordWebhookURL: subscription.discordWebhookURL,
+                            mentioningDiscordRoles: subscription.mentioningDiscordRoles
+                                .map { $0.roleSnowflake }
+                        )
+                    )
+                }
             }
         }
+    }
+    
+    private func shouldExecuteDiscordWebhookJob(video: YouTubeVideo, on context: QueueContext) async throws -> Bool {
+        if (Environment.get("ONLY_NOTIFY_ONCE") != nil) {
+            return try await YouTubeVideoRow.query(on: context.application.db)
+                .filter(\.$videoID == video.id)
+                .count() == 0
+        }
+        return true
     }
     
     private func received(
