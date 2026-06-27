@@ -6,19 +6,18 @@ enum Entrypoint {
     static func main() async throws {
         var env = try Environment.detect()
         try LoggingSystem.bootstrap(from: &env)
-        
-        let app = Application(env)
-        defer {
-            app.shutdown()
-        }
-        
+
+        let app = try await Application.make(env)
+
         do {
-            app.databases.use(databaseConfig(), as: databaseID())
+            app.databases.use(try databaseConfig(), as: databaseID())
             try configure(app)
         } catch {
             app.logger.report(error: error)
+            try await app.asyncShutdown()
             throw error
         }
         try await app.execute()
+        try await app.asyncShutdown()
     }
 }

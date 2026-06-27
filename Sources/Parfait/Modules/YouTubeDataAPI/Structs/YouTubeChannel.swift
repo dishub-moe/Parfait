@@ -58,31 +58,8 @@ struct YouTubeChannelSnippet: Codable {
     
 }
 
-struct YouTubeChannelSnippetThumbnails: Codable {
-    
-    var `default`: YouTubeChannelSnippetThumbnail?
-    
-    var medium: YouTubeChannelSnippetThumbnail?
-    
-    var high: YouTubeChannelSnippetThumbnail?
-    
-    enum CodingKeys: String, CodingKey {
-        case `default` = "default"
-        case medium = "medium"
-        case high = "high"
-    }
-    
-}
-
-struct YouTubeChannelSnippetThumbnail: Codable {
-    
-    var url: String
-    
-    var width: UInt
-    
-    var height: UInt
-    
-}
+typealias YouTubeChannelSnippetThumbnails = YouTubeThumbnails
+typealias YouTubeChannelSnippetThumbnail = YouTubeThumbnail
 
 struct YouTubeChannelSnippetLocalized: Codable {
     

@@ -1,20 +1,37 @@
 import Vapor
 
 
-extension Application: YouTubeDataAPI {
-    
-    fileprivate static let YOUTUBE_API_KEY = "YOUTUBE_API_KEY"
-    
-    var youTubeAPIKey: String {
-        guard let youTubeAPIKey = Environment.get(Self.YOUTUBE_API_KEY) else {
-            fatalError("\(Self.YOUTUBE_API_KEY) is not defined")
-        }
-        return youTubeAPIKey
+struct YouTubeDataAPIService {
+    let apiKey: String
+}
+
+extension Application {
+
+    private struct YouTubeDataAPIServiceKey: StorageKey {
+        typealias Value = YouTubeDataAPIService
     }
-    
+
+    var youTubeDataAPIService: YouTubeDataAPIService {
+        get {
+            guard let service = storage[YouTubeDataAPIServiceKey.self] else {
+                fatalError("YouTubeDataAPIService not configured — call app.configureYouTubeDataAPI() at startup")
+            }
+            return service
+        }
+        set {
+            storage[YouTubeDataAPIServiceKey.self] = newValue
+        }
+    }
+
+}
+
+extension Application: YouTubeDataAPI {
+
+    var youTubeAPIKey: String { youTubeDataAPIService.apiKey }
+
     func fetchYouTubeVideos(ids: [String]) async throws -> YouTubePage<YouTubeVideo> {
         var headers = HTTPHeaders()
-        headers.add(name: HTTPHeaders.Name.accept, value: "application/json")
+        headers.add(name: .accept, value: "application/json")
         let response = try await client.get(
             URI(string: "https://youtube.googleapis.com/youtube/v3/videos"),
             headers: headers
@@ -34,10 +51,10 @@ extension Application: YouTubeDataAPI {
         }
         return try response.content.decode(YouTubePage<YouTubeVideo>.self)
     }
-    
+
     func fetchYouTubeChannels(ids: [String]) async throws -> YouTubePage<YouTubeChannel> {
         var headers = HTTPHeaders()
-        headers.add(name: HTTPHeaders.Name.accept, value: "application/json")
+        headers.add(name: .accept, value: "application/json")
         let response = try await client.get(
             URI(string: "https://youtube.googleapis.com/youtube/v3/channels"),
             headers: headers
@@ -56,26 +73,18 @@ extension Application: YouTubeDataAPI {
         }
         return try response.content.decode(YouTubePage<YouTubeChannel>.self)
     }
-    
+
 }
 
 
 private struct FetchYouTubeVideoByIDsQuery: Codable {
-    
     let part: [String]
-    
     let id: [String]
-    
     let key: String
-    
 }
 
 private struct FetchYouTubeChannelByIDsQuery: Codable {
-    
     let part: [String]
-    
     let id: [String]
-    
     let key: String
-    
 }

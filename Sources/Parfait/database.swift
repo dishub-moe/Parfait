@@ -3,33 +3,27 @@ import FluentMySQLDriver
 import Vapor
 
 
-func databaseConfig() -> DatabaseConfigurationFactory {
-    .mysql(
+func databaseConfig() throws -> DatabaseConfigurationFactory {
+    guard let username = Environment.get("DATABASE_USERNAME") else {
+        throw ConfigurationError(description: "DATABASE_USERNAME environment variable is not set")
+    }
+    guard let password = Environment.get("DATABASE_PASSWORD") else {
+        throw ConfigurationError(description: "DATABASE_PASSWORD environment variable is not set")
+    }
+    guard let database = Environment.get("DATABASE_NAME") else {
+        throw ConfigurationError(description: "DATABASE_NAME environment variable is not set")
+    }
+    return .mysql(
         hostname: Environment.get("DATABASE_HOST") ?? "localhost",
         port: Environment.get("DATABASE_PORT").flatMap(Int.init(_:)) ?? MySQLConfiguration.ianaPortNumber,
-        username: Environment.get("DATABASE_USERNAME") ?? "parfait_db_username",
-        password: Environment.get("DATABASE_PASSWORD") ?? "parfait_db_password",
-        database: Environment.get("DATABASE_NAME") ?? "parfait_db_database",
-        tlsConfiguration: Environment.get("DATABASE_SKIP_CERTIFICATE_VERIFICATION") == nil ? .standard() : .noCertificateVerification()
+        username: username,
+        password: password,
+        database: database,
+        tlsConfiguration: .makeClientConfiguration()
     )
 }
 
 
 func databaseID() -> DatabaseID {
     .mysql
-}
-
-
-extension TLSConfiguration {
-    
-    static func standard() -> TLSConfiguration {
-        return .makeClientConfiguration()
-    }
-    
-    static func noCertificateVerification() -> TLSConfiguration {
-        var tlsConfiguration: TLSConfiguration = .makeClientConfiguration()
-        tlsConfiguration.certificateVerification = .none
-        return tlsConfiguration
-    }
-    
 }

@@ -9,49 +9,27 @@ import Vapor
 func configure(
     _ app: Application
 ) throws {
-    guard let _ = Environment.get("BASE_URL") else {
-        app.logger.critical(
-            """
-            Application URL is not defined.
-            Please set the BASE_URL environment variable to the desired URL.
-            """
-        )
-        fatalError()
+    guard Environment.get("BASE_URL") != nil else {
+        throw ConfigurationError(description: "BASE_URL environment variable is not set")
     }
-    guard let _ = Environment.get("CALLBACK_PATH") else {
-        app.logger.critical(
-            """
-            Callback path is not defined.
-            Please set the CALLBACK_PATH environment variable to the desired path.
-            """
-        )
-        fatalError()
+    guard Environment.get("CALLBACK_PATH") != nil else {
+        throw ConfigurationError(description: "CALLBACK_PATH environment variable is not set")
     }
-    guard let _ = Environment.get("YOUTUBE_API_KEY") else {
-        app.logger.critical(
-            """
-            YouTube API key is not defined.
-            Please set the YOUTUBE_API_KEY environment variable to your YouTube API key.
-            """
-        )
-        fatalError()
+    guard let youTubeAPIKey = Environment.get("YOUTUBE_API_KEY") else {
+        throw ConfigurationError(description: "YOUTUBE_API_KEY environment variable is not set")
     }
-    guard let _ = Environment.get("REDIS_URL") else {
-        app.logger.critical(
-            """
-            Redis URL is not defined.
-            Please set the REDIS_URL environment variable to the desired URL.
-            """
-        )
-        fatalError()
+    guard let redisURL = Environment.get("REDIS_URL") else {
+        throw ConfigurationError(description: "REDIS_URL environment variable is not set")
     }
-    
+
+    app.youTubeDataAPIService = YouTubeDataAPIService(apiKey: youTubeAPIKey)
+
     runSubscriberFluentMigration(on: app.migrations)
     app.migrations.add(CreateDiscordWebhookSubscriptionsTable())
     app.migrations.add(CreateMentioningDiscordRolesTable())
     app.migrations.add(CreateYouTubeChannelsTable())
     app.migrations.add(CreateYouTubeVideosTable())
-    
+
     app.asyncCommands.use(Subscribe(), as: "subscribe")
     app.asyncCommands.use(Unsubscribe(), as: "unsubscribe")
     app.asyncCommands.use(
@@ -61,16 +39,16 @@ func configure(
         ),
         as: "resubscribe"
     )
-    
+
     app.queues.add(ExecuteDiscordWebhookJob())
     app.queues.add(ExtractReceivedContentJob())
-    
+
     try app.register(
         collection: CallbackRoutes(
             callbackURLGenerator: app,
             delegate: app
         )
     )
-    
-    try app.queues.use(.redis(url: Environment.get("REDIS_URL")!))
+
+    try app.queues.use(.redis(url: redisURL))
 }

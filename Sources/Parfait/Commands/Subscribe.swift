@@ -42,10 +42,15 @@ struct Subscribe: AsyncCommand {
             youTubeChannelID,
             using: context
         )
+        let webhookURL = try discordWebhook.convertToURL()
+        guard webhookURL.scheme == "https",
+              webhookURL.host?.hasSuffix("discord.com") == true else {
+            throw ConfigurationError(description: "Discord webhook URL must use HTTPS and point to a discord.com host")
+        }
         let subscription = try await context.application
             .createOrUpdateDiscordWebhookSubscription(
                 youTubeChannelID: youTubeChannelID,
-                discordWebhookURL: discordWebhook.convertToURL(),
+                discordWebhookURL: webhookURL,
                 label: signature.label
             )
         context.application.logger.trace("Subscription updated")

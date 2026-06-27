@@ -19,7 +19,7 @@ protocol DiscordWebhookSubscription {
 }
 
 
-final class DiscordWebhookSubscriptionRow: Model {
+final class DiscordWebhookSubscriptionRow: Model, @unchecked Sendable {
     
     static let schema = "discord_webhook_subscriptions"
     

@@ -15,9 +15,9 @@ protocol MentioningDiscordRole {
 }
 
 
-final class MentioningDiscordRoleRow: Model {
-    
-    static var schema = "mentioning_discord_roles"
+final class MentioningDiscordRoleRow: Model, @unchecked Sendable {
+
+    static let schema = "mentioning_discord_roles"
     
     @ID(key: .id)
     var id: UUID?

@@ -28,8 +28,11 @@ extension ExecuteDiscordWebhookJob.Payload {
     
     fileprivate func createContent() throws -> WebhookContent {
         let roleSnowflakes = mentioningDiscordRoles.map({ "<@&\($0)>" }).joined(separator: " ")
+        // Neutralise ping injection from attacker-controllable video titles.
+        // U+200B (zero-width space) after '@' prevents @everyone / @here / <@&id> from firing.
+        let safeTitle = youTubeVideo.snippet.title.replacingOccurrences(of: "@", with: "@\u{200B}")
         return try Content
-            .builder(text: "\(roleSnowflakes) \(youTubeVideo.snippet.title) https://www.youtube.com/watch?v=\(youTubeVideo.id)")
+            .builder(text: "\(roleSnowflakes) \(safeTitle) https://www.youtube.com/watch?v=\(youTubeVideo.id)")
             .profile(
                 Profile(
                     username: youTubeChannel.snippet.title,
@@ -72,7 +75,7 @@ private class DiscordWebhook: Webhook {
 }
 
 
-extension HTTPResponseStatus: LocalizedError {
+extension HTTPResponseStatus: @retroactive LocalizedError {
     
     public var errorDescription: String? { reasonPhrase }
     

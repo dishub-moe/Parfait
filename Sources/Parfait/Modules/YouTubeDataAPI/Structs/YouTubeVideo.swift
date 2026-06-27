@@ -58,35 +58,16 @@ enum LiveBroadcastContent: String, Codable, UnknownDecodable {
     case unknown
 }
 
-// MARK: - YouTube Video Thumbnails
+// MARK: - YouTube Video Thumbnails (shared type)
 
-struct YouTubeVideoThumbnails: Codable {
-    
-    var `default`: YouTubeVideoThumbnail?
-    
-    var medium: YouTubeVideoThumbnail?
-    
-    var high: YouTubeVideoThumbnail?
-    
-}
-
-// MARK: - YouTube Video Thumbnail
-
-struct YouTubeVideoThumbnail: Codable {
-    
-    var url: String
-    
-    var width: UInt
-    
-    var height: UInt
-    
-}
+typealias YouTubeVideoThumbnails = YouTubeThumbnails
+typealias YouTubeVideoThumbnail = YouTubeThumbnail
 
 // MARK: - YouTube Video Content Details
 
 struct YouTubeVideoContentDetails: Codable {
     
-    var duration: Duration
+    var duration: YouTubeVideoDuration
     
     var dimension: YouTubeVideContentDimension
     
@@ -100,12 +81,12 @@ struct YouTubeVideoContentDetails: Codable {
     
 }
 
-enum Duration {
+enum YouTubeVideoDuration {
     case parsed(days: UInt, hours: UInt, minutes: UInt, seconds: UInt)
     case fail(raw: String?)
 }
 
-extension Duration: Codable {
+extension YouTubeVideoDuration: Codable {
     init(from decoder: Decoder) throws {
         guard let container = try? decoder.singleValueContainer() else {
             self = .fail(raw: nil)

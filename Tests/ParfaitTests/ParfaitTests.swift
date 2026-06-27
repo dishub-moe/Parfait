@@ -5,13 +5,13 @@ import Queues
 
 
 final class ParfaitTests: XCTestCase {
-    
+
     func testExecute() async throws {
         let youTubeChannelID = Environment.get("TEST_YOUTUBE_CHANNEL_ID")!
         let discordWebhookURL = Environment.get("TEST_DISCORD_WEBHOOK_URL")!
         let mentioningRoles = Environment.get("TEST_MENTIONING_DISCORD_ROLES")!
-        let app = Application(.testing)
-        defer { app.shutdown() }
+        let app = try await Application.make(.testing)
+        addTeardownBlock { try await app.asyncShutdown() }
         app.databases.use(.sqlite(.memory), as: .sqlite)
         app.logger.logLevel = .trace
         try configure(app)
@@ -38,5 +38,5 @@ final class ParfaitTests: XCTestCase {
         try await QueuesCommand(application: app).run(using: &queueCommandContext)
         try await app.execute()
     }
-    
+
 }

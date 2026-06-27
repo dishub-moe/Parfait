@@ -2,9 +2,9 @@ import FluentKit
 import Foundation
 
 
-final class YouTubeChannelRow: Model {
-    
-    static var schema: String = "youtube_channels"
+final class YouTubeChannelRow: Model, @unchecked Sendable {
+
+    static let schema: String = "youtube_channels"
     
     @ID(key: .id)
     var id: UUID?

@@ -6,4 +6,4 @@ DerivedData/
 .swiftpm/
 .netrc
 .vscode
-Package.resolved
+.env
