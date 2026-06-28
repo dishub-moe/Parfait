@@ -3,12 +3,24 @@ import SubscriberVapor
 import Vapor
 
 
-struct CallbackRoutes: SubscriberVapor.CallbackRoutes {
-    
-    let callbackURLGenerator: CallbackURLGenerator
-    
-    let delegate: SubscriberDelegate
-    
+struct CallbackRoutes: SubscriberVapor.CallbackRoutes, Sendable {
+
+    var callbackURLGenerator: CallbackURLGenerator { storedCallbackURLGenerator }
+
+    var delegate: SubscriberDelegate { storedDelegate }
+
+    private let storedCallbackURLGenerator: CallbackURLGenerator & Sendable
+
+    private let storedDelegate: SubscriberDelegate & Sendable
+
+    init(
+        callbackURLGenerator: CallbackURLGenerator & Sendable,
+        delegate: SubscriberDelegate & Sendable
+    ) {
+        self.storedCallbackURLGenerator = callbackURLGenerator
+        self.storedDelegate = delegate
+    }
+
     func boot(routes: RoutesBuilder) throws {
         routes.group("\(callbackURLGenerator.callbackPath)") { routes in
             routes.group(":id") { routes in
