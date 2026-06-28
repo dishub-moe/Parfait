@@ -2,7 +2,7 @@ import SubscriberVapor
 import Vapor
 
 
-extension Application: CallbackURLGenerator {
+extension Application: @retroactive CallbackURLGenerator {
     
     public var baseURL: String { Environment.get("BASE_URL")! }
     

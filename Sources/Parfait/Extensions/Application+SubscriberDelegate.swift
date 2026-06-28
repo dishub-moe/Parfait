@@ -3,7 +3,7 @@ import Queues
 import Vapor
 
 
-extension Application: SubscriberDelegate {
+extension Application: @retroactive SubscriberDelegate {
     
     public func subscription(_ subscription: Subscription, received payload: Data) async throws {
         try await queues.queue.dispatch(ExtractReceivedContentJob.self, .init(data: payload))
