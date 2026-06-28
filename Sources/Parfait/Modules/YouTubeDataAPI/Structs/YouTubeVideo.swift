@@ -189,19 +189,33 @@ extension YouTubeVideoContentProjection: Codable {
 // MARK: - YouTube Video Status
 
 struct YouTubeVideoStatus: Codable {
-    
+
     var uploadStatus: YouTubeVideoUploadStatus
-    
     var privacyStatus: YouTubeVideoPrivacyStatus
-    
     var license: YouTubeVideoLicense
-    
     var embeddable: Bool
-    
     var publicStatsViewable: Bool
-    
     var madeForKids: Bool
-    
+
+    enum CodingKeys: CodingKey {
+        case uploadStatus
+        case privacyStatus
+        case license
+        case embeddable
+        case publicStatsViewable
+        case madeForKids
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.uploadStatus = try container.decode(YouTubeVideoUploadStatus.self, forKey: .uploadStatus)
+        self.privacyStatus = try container.decode(YouTubeVideoPrivacyStatus.self, forKey: .privacyStatus)
+        self.license = try container.decode(YouTubeVideoLicense.self, forKey: .license)
+        self.embeddable = (try? container.decode(Bool.self, forKey: .embeddable)) ?? false
+        self.publicStatsViewable = (try? container.decode(Bool.self, forKey: .publicStatsViewable)) ?? false
+        self.madeForKids = (try? container.decode(Bool.self, forKey: .madeForKids)) ?? false
+    }
+
 }
 
 enum YouTubeVideoUploadStatus: String, Codable, UnknownDecodable {
