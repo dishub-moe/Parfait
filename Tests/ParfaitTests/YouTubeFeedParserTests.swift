@@ -39,6 +39,7 @@ final class YouTubeFeedParserTests: XCTestCase {
         XCTAssertEqual(video.channelID, "CHANNEL_ID_456")
         XCTAssertEqual(video.videoTitle, "Test Video Title")
         XCTAssertEqual(video.channelName, "Test Channel")
+        XCTAssertNotNil(video.publishedAt)
     }
 
     func testParseDeletedEntryFeed() {
@@ -81,6 +82,15 @@ final class YouTubeFeedParserTests: XCTestCase {
         }
         guard case .empty = feed else {
             XCTFail("Expected .empty but got \(feed)")
+            return
+        }
+    }
+
+    func testParseInvalidData() {
+        let data = Data("not valid xml at all".utf8)
+        let result = TestParser().parseYouTubeFeed(from: data)
+        guard case .failure = result else {
+            XCTFail("Expected .failure for invalid data, got \(result)")
             return
         }
     }

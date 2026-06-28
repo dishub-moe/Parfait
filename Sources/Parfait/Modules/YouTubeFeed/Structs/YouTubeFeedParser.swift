@@ -87,7 +87,9 @@ private final class DeletedEntryParserDelegate: NSObject, XMLParserDelegate {
     func parser(_ parser: XMLParser, didStartElement elementName: String,
                 namespaceURI: String?, qualifiedName qName: String?,
                 attributes attributeDict: [String: String]) {
-        guard elementName == "deleted-entry", let ref = attributeDict["ref"] else { return }
+        guard elementName == "deleted-entry",
+              namespaceURI == "http://purl.org/atompub/tombstones/1.0",
+              let ref = attributeDict["ref"] else { return }
         refs.append(ref)
     }
 }
