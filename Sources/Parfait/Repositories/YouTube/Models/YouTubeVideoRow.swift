@@ -74,7 +74,7 @@ struct CreateYouTubeVideosTable: AsyncMigration {
             .field("title", .string, .required)
             .field("url", .string, .required)
             .field("thumbnail_url", .string)
-            .field("description", .sql(raw: "TEXT"))
+            .field("description", .sql(.text))
             .field("published_at", .datetime)
             .field("scheduled_at", .datetime)
             .field("created_at", .datetime)
