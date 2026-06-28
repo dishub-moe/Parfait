@@ -1,4 +1,5 @@
 {
+  "originHash" : "2013e3cd3b74c64db1c30de58950210fca1bb298e072f0c6aee2f6dd27701ec3",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -39,10 +40,10 @@
     {
       "identity" : "feedkit",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/naufalfachrian/FeedKit",
+      "location" : "https://github.com/nmdias/FeedKit.git",
       "state" : {
-        "revision" : "a0a3f4820e9cd97f707dd343bb610d2bb0c5fba5",
-        "version" : "9.1.3"
+        "revision" : "e55b2cafaf67370092c91193cfb8a8b008e05888",
+        "version" : "10.4.0"
       }
     },
     {
@@ -433,5 +434,5 @@
       }
     }
   ],
-  "version" : 2
+  "version" : 3
 }
